@@ -38,11 +38,12 @@ pip install -r requirements.txt
 
 ### 3. Configure environment (optional)
 
-```bash
-cp .env.example .env
-```
-
 Edit `.env` if you want to use your own OpenRouteService key or Django settings. The API key is also configured in `config/settings.py` as `ORS_API_KEY`.
+
+ORS_API_KEY=replace-with-your-ors-api-key
+DJANGO_SECRET_KEY=replace-with-a-long-random-string
+DEBUG=False
+
 
 ### 4. Set up the database
 
