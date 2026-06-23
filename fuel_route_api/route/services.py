@@ -25,9 +25,6 @@ from .models import FuelStation
 EARTH_RADIUS_MILES = 3_958.8
 ORS_BASE = "https://api.openrouteservice.org"
 
-
-# ─── geometry helpers ─────────────────────────────────────────────────────────
-
 def _haversine(lat1, lon1, lat2, lon2) -> float:
     """Great-circle distance in miles."""
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
@@ -71,8 +68,6 @@ def _cumulative_miles(points: list[tuple]) -> list[float]:
         dists.append(dists[-1] + _haversine(*points[i - 1], *points[i]))
     return dists
 
-
-# ─── ORS API calls ────────────────────────────────────────────────────────────
 
 def _geocode(place: str) -> tuple[float, float]:
     """ORS geocoding → (lat, lon). Raises ValueError if nothing found."""
@@ -119,8 +114,6 @@ def _get_driving_route(start_latlon: tuple, end_latlon: tuple) -> dict:
     return resp.json()
 
 
-# ─── station lookup ───────────────────────────────────────────────────────────
-
 def _cheapest_nearby(lat: float, lon: float, radius_miles: float) -> FuelStation | None:
     """
     Cheapest FuelStation within radius_miles of (lat, lon).
@@ -141,7 +134,27 @@ def _cheapest_nearby(lat: float, lon: float, radius_miles: float) -> FuelStation
     return None
 
 
-# ─── main entry point ─────────────────────────────────────────────────────────
+def _google_maps_url(start_latlon, end_latlon, stops_raw=None) -> str:
+    origin = f"{start_latlon[0]},{start_latlon[1]}"
+    dest = f"{end_latlon[0]},{end_latlon[1]}"
+
+    if stops_raw:
+        # waypoints = fuel stops (max ~10 for Google URLs)
+        wps = "|".join(
+            f"{s['station'].latitude},{s['station'].longitude}"
+            for s in stops_raw[:10]
+        )
+        return (
+            f"https://www.google.com/maps/dir/?api=1"
+            f"&origin={origin}&destination={dest}"
+            f"&waypoints={wps}&travelmode=driving"
+        )
+
+    return (
+        f"https://www.google.com/maps/dir/?api=1"
+        f"&origin={origin}&destination={dest}&travelmode=driving"
+    )
+
 
 def build_route(start: str, finish: str) -> dict:
     """
@@ -236,14 +249,6 @@ def build_route(start: str, finish: str) -> dict:
 
     total_gallons = total_miles / mpg
 
-    # ── 6. Map URL ───────────────────────────────────────────────────────────
-    map_url = (
-        f"https://maps.openrouteservice.org/directions?"
-        f"n1={start_latlon[0]}&e1={start_latlon[1]}"
-        f"&n2={end_latlon[0]}&e2={end_latlon[1]}"
-        f"&b=0&c=0&k1=en-US&k2=km"
-    )
-
     return {
         "start": start,
         "finish": finish,
@@ -256,6 +261,6 @@ def build_route(start: str, finish: str) -> dict:
         "vehicle_max_range_miles": tank_miles,
         "fuel_stops_count": len(fuel_stops_out),
         "fuel_stops": fuel_stops_out,
-        "map_url": map_url,
+        "map_url": _google_maps_url(start_latlon, end_latlon, stops_raw),
         "encoded_polyline": encoded_poly,
     }

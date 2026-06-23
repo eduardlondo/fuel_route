@@ -6,9 +6,9 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-change-in-production")
+SECRET_KEY = "dev-secret-key-change-in-production"
 
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = "False"
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -85,7 +85,7 @@ REST_FRAMEWORK = {
 }
 
 # OpenRouteService free API key — user must set this in .env
-ORS_API_KEY = os.getenv("ORS_API_KEY", "")
+ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQyODI5M2ZmZDMyMDQ3NmM4NGNlM2Y0MDhiOTM3Njk4IiwiaCI6Im11cm11cjY0In0="
 
 # Fuel station CSV path
 FUEL_CSV_PATH = BASE_DIR / "fuel_stations.csv"
